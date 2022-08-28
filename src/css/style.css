@@ -1,0 +1,11 @@
+.gallery-link {
+  display: inline-block;
+}
+
+.gallery-image {
+  display: block;
+}
+
+/* .gallery-item {
+  display: flex;
+} */
