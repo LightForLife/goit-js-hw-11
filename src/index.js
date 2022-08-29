@@ -1,27 +1,16 @@
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import axios from 'axios';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
 const refs = {
   galleryCard: document.querySelector('.gallery'),
   searchForm: document.querySelector('#search-form'),
-  loadMoreBtn: document.querySelector('load-more'),
+  loadMoreBtn: document.querySelector('.load-more'),
 };
 
-refs.searchForm.addEventListener('submit', onSearchImage);
-// refs.loadMoreBtn.addEventListener("click")
-
-function onSearchImage(event) {
-  refs.galleryCard.innerHTML = '';
-  event.preventDefault();
-  const searchText = event.currentTarget.elements.searchQuery.value.trim();
-  console.log(searchText);
-  axiosImage(searchText);
-}
-
-// const PER_PAGE = 40;
-const DEFAULT_CURRENT_PAGE = 1;
-// let currentPage = 1;
+let searchQuery = '';
+let currentPage = 1;
 
 const params = {
   key: '28415242-e0e8b03e245983e2ec7e6c358',
@@ -31,11 +20,40 @@ const params = {
   per_page: 40,
 };
 
+refs.searchForm.addEventListener('submit', onSearchImage);
+refs.loadMoreBtn.addEventListener('click', onLoadMore);
+
+function onSearchImage(event) {
+  event.preventDefault();
+  refs.galleryCard.innerHTML = '';
+  currentPage = 1;
+
+  searchQuery = event.currentTarget.elements.searchQuery.value.trim();
+  console.log(searchQuery);
+  axiosImage(searchQuery);
+}
+
+function onLoadMore(event) {
+  currentPage += 1;
+  console.log('fff');
+
+  console.log(currentPage);
+  console.log(searchQuery);
+  axiosImage(searchQuery);
+}
+
+// let currentPage = 1;
+
 function axiosImage(query) {
-  const url = `https://pixabay.com/api/?q=${query}&page=${DEFAULT_CURRENT_PAGE}`;
+  const url = `https://pixabay.com/api/?q=${query}&page=${currentPage}`;
   return axios.get(url, { params }).then(response => {
     createImageCard(response.data.hits);
     const createImg = createImageCard(response.data.hits);
+    if (createImg.length === 0) {
+      return Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+    }
     renderImage(createImg);
   });
 }
