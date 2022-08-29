@@ -4,32 +4,41 @@ import axios from 'axios';
 
 const refs = {
   galleryCard: document.querySelector('.gallery'),
+  searchForm: document.querySelector('#search-form'),
+  loadMoreBtn: document.querySelector('load-more'),
 };
 
-console.log(refs.galleryCard);
+refs.searchForm.addEventListener('submit', onSearchImage);
+// refs.loadMoreBtn.addEventListener("click")
 
-// axios.defaults.baseURL =
-//   'https://pixabay.com/api/?key=29563076-116975c46708de5d99dfe50c3';
-
-const PER_PAGE = 40;
-const DEFAULT_CURRENT_PAGE = 1;
-// let currentPage = 1;
-let query = 'dog';
-
-function axiosImage() {
-  return axios
-    .get(
-      'https://pixabay.com/api/?key=29563076-116975c46708de5d99dfe50c3&q=yellow+flowers&image_type=photo'
-    )
-    .then(response => {
-      createImageCard(response.data.hits);
-      const createImg = createImageCard(response.data.hits);
-      renderImage(createImg);
-      // return response.data.hits;
-    });
+function onSearchImage(event) {
+  refs.galleryCard.innerHTML = '';
+  event.preventDefault();
+  const searchText = event.currentTarget.elements.searchQuery.value.trim();
+  console.log(searchText);
+  axiosImage(searchText);
 }
 
-console.log(axiosImage());
+// const PER_PAGE = 40;
+const DEFAULT_CURRENT_PAGE = 1;
+// let currentPage = 1;
+
+const params = {
+  key: '28415242-e0e8b03e245983e2ec7e6c358',
+  image_type: 'photo',
+  orientation: 'horizontal',
+  safesearch: true,
+  per_page: 40,
+};
+
+function axiosImage(query) {
+  const url = `https://pixabay.com/api/?q=${query}&page=${DEFAULT_CURRENT_PAGE}`;
+  return axios.get(url, { params }).then(response => {
+    createImageCard(response.data.hits);
+    const createImg = createImageCard(response.data.hits);
+    renderImage(createImg);
+  });
+}
 
 function createImageCard(images) {
   return images
@@ -39,17 +48,17 @@ function createImageCard(images) {
           <a class="gallery-link" href="${image.largeImageURL}">
               <img class="gallery-image" src="${image.webformatURL}" alt="${image.tags}" loading="lazy" />
           </a>
-          <div class="gallery__info">
-              <p class="gallery__info-item">
+          <div class="gallery-info">
+              <p class="gallery-info-text">
                   <b>Likes ${image.likes}</b>
               </p>
-              <p class="gallery__info-item">
+              <p class="gallery-info-text">
                   <b>Views ${image.views}</b>
               </p>
-              <p class="gallery__info-item">
+              <p class="gallery-info-text">
                   <b>Comments ${image.comments}</b>
               </p>
-              <p class="gallery__info-item">
+              <p class="gallery-info-text">
                   <b>Downloads ${image.downloads}</b>
               </p>
           </div>
@@ -63,7 +72,7 @@ function renderImage(images) {
 }
 
 const gallery = new SimpleLightbox('.gallery a', {
-  // scrollZoom: false,
+  scrollZoom: false,
   captionsData: 'alt',
   captionDelay: 250,
 });
