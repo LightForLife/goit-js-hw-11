@@ -1,7 +1,13 @@
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
-import axios from 'axios';
-import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import ImgApiServise from './create-img.js';
+import createImageCard from './render-img';
+
+const gallery = new SimpleLightbox('.gallery a', {
+  captionsData: 'alt',
+  captionDelay: 250,
+});
 
 const refs = {
   galleryCard: document.querySelector('.gallery'),
@@ -9,114 +15,77 @@ const refs = {
   loadMoreBtn: document.querySelector('.load-more'),
 };
 
-let searchQuery = '';
-let currentPage = 1;
+refs.loadMoreBtn.style.display = 'none';
 
-const params = {
-  key: '28415242-e0e8b03e245983e2ec7e6c358',
-  image_type: 'photo',
-  orientation: 'horizontal',
-  safesearch: true,
-  per_page: 40,
-};
+const imgApiServise = new ImgApiServise();
+let valueImages = 0;
 
 refs.searchForm.addEventListener('submit', onSearchImage);
 refs.loadMoreBtn.addEventListener('click', onLoadMore);
 
-function onSearchImage(event) {
+async function onSearchImage(event) {
   event.preventDefault();
-  refs.galleryCard.innerHTML = '';
-  currentPage = 1;
 
-  searchQuery = event.currentTarget.elements.searchQuery.value.trim();
-  console.log(searchQuery);
-  axiosImage(searchQuery);
+  refs.loadMoreBtn.style.display = 'none';
+
+  clearContainer();
+
+  const searchText = event.currentTarget.elements.searchQuery.value.trim();
+
+  if (!searchText) {
+    return;
+  }
+
+  imgApiServise.query = searchText;
+  imgApiServise.resetPage();
+  imgApiServise.axiosGetImages();
+
+  const images = await imgApiServise.axiosGetImages();
+  checkSearch(images.hits.length);
+  const renderCard = createImageCard(images.hits);
+
+  valueImages = images.totalHits;
+  Notify.success(`Hooray! We found ${valueImages} images.`);
+  console.log(valueImages);
+  renderImage(renderCard);
+
+  gallery.refresh();
+  refs.loadMoreBtn.style.display = 'block';
+  valueImages -= images.hits.length;
+  // console.log(valueImages);
 }
 
-function onLoadMore(event) {
-  currentPage += 1;
-  console.log('fff');
+async function onLoadMore(event) {
+  const images = await imgApiServise.axiosGetImages();
+  // valueImages -= images.hits.length;
 
-  console.log(currentPage);
-  console.log(searchQuery);
-  axiosImage(searchQuery);
-}
+  // const value = valueImages - images.hits.length;
+  // console.log(valueImages);
 
-// let currentPage = 1;
+  const renderCard = createImageCard(images.hits);
 
-function axiosImage(query) {
-  const url = `https://pixabay.com/api/?q=${query}&page=${currentPage}`;
-  return axios.get(url, { params }).then(response => {
-    createImageCard(response.data.hits);
-    const createImg = createImageCard(response.data.hits);
-    if (createImg.length === 0) {
-      return Notify.failure(
-        'Sorry, there are no images matching your search query. Please try again.'
-      );
-    }
-    renderImage(createImg);
-  });
-}
-
-function createImageCard(images) {
-  return images
-    .map(image => {
-      return `
-        <div class="gallery-item">
-          <a class="gallery-link" href="${image.largeImageURL}">
-              <img class="gallery-image" src="${image.webformatURL}" alt="${image.tags}" loading="lazy" />
-          </a>
-          <div class="gallery-info">
-              <p class="gallery-info-text">
-                  <b>Likes ${image.likes}</b>
-              </p>
-              <p class="gallery-info-text">
-                  <b>Views ${image.views}</b>
-              </p>
-              <p class="gallery-info-text">
-                  <b>Comments ${image.comments}</b>
-              </p>
-              <p class="gallery-info-text">
-                  <b>Downloads ${image.downloads}</b>
-              </p>
-          </div>
-      </div>`;
-    })
-    .join('');
+  renderImage(renderCard);
+  gallery.refresh();
+  // console.log(value);
+  // if (value < 0 || images.hits.length > valueImages) {
+  //   refs.loadMoreBtn.style.display = 'none';
+  //   Notify.info("We're sorry, but you've reached the end of search results.");
+  //   return;
+  // }
 }
 
 function renderImage(images) {
   refs.galleryCard.insertAdjacentHTML('beforeend', images);
 }
 
-const gallery = new SimpleLightbox('.gallery a', {
-  scrollZoom: false,
-  captionsData: 'alt',
-  captionDelay: 250,
-});
+function clearContainer() {
+  refs.galleryCard.innerHTML = '';
+}
 
-//==================================
-/* <div class="photo-card">
-  <a class="gallery-item" href="${original}">
-    <img
-      class="gallery-image"
-      src="${preview}"
-      alt="${description}"
-      loading="lazy"
-    />
-  </a>
-  <div class="info">
-    <p class="info-item">
-      <b>Likes</b>
-    </p>
-    <p class="info-item">
-      <b>Views</b>
-    </p>
-    <p class="info-item">
-      <b>Comments</b>
-    </p>
-    <p class="info-item">
-      <b>Downloads</b>
-    </p>
-  </div>
-</div>; */
+function checkSearch(search) {
+  if (search === 0) {
+    return Notify.failure(
+      'Sorry, there are no images matching your search query. Please try again.'
+    );
+  }
+}
