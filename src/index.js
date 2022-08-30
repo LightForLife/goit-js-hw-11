@@ -53,7 +53,7 @@ async function onSearchImage(event) {
   valueImages = images.totalHits;
 
   Notify.success(`Hooray! We found ${valueImages} images.`);
-  console.log(valueImages);
+
   renderImage(renderCard);
 
   gallery.refresh();
@@ -70,6 +70,7 @@ async function onLoadMore(event) {
   const renderCard = createImageCard(images.hits);
 
   renderImage(renderCard);
+  smoothPageScrolling();
   checkOnloadMore(value);
   gallery.refresh();
 }
@@ -87,4 +88,15 @@ function checkOnloadMore(value) {
     refs.loadMoreBtn.style.display = 'none';
     Notify.info("We're sorry, but you've reached the end of search results.");
   }
+}
+
+function smoothPageScrolling() {
+  const { height: cardHeight } = document
+    .querySelector('.gallery')
+    .firstElementChild.getBoundingClientRect();
+
+  window.scrollBy({
+    top: cardHeight * 2,
+    behavior: 'smooth',
+  });
 }
