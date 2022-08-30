@@ -95,8 +95,7 @@ p {
 }
 
 .load-more {
-  margin: 0 auto;
-  display: block;
+  margin: 20 auto;
   height: 35px;
   width: 150px;
   background-image: linear-gradient(

@@ -38,13 +38,20 @@ async function onSearchImage(event) {
 
   imgApiServise.query = searchText;
   imgApiServise.resetPage();
-  imgApiServise.axiosGetImages();
 
   const images = await imgApiServise.axiosGetImages();
-  checkSearch(images.hits.length);
+
+  if (images.hits.length === 0) {
+    Notify.failure(
+      'Sorry, there are no images matching your search query. Please try again.'
+    );
+    return;
+  }
+
   const renderCard = createImageCard(images.hits);
 
   valueImages = images.totalHits;
+
   Notify.success(`Hooray! We found ${valueImages} images.`);
   console.log(valueImages);
   renderImage(renderCard);
@@ -52,26 +59,19 @@ async function onSearchImage(event) {
   gallery.refresh();
   refs.loadMoreBtn.style.display = 'block';
   valueImages -= images.hits.length;
-  // console.log(valueImages);
 }
 
 async function onLoadMore(event) {
   const images = await imgApiServise.axiosGetImages();
-  // valueImages -= images.hits.length;
 
-  // const value = valueImages - images.hits.length;
-  // console.log(valueImages);
+  valueImages -= images.hits.length;
+  const value = valueImages - images.hits.length;
 
   const renderCard = createImageCard(images.hits);
 
   renderImage(renderCard);
+  checkOnloadMore(value);
   gallery.refresh();
-  // console.log(value);
-  // if (value < 0 || images.hits.length > valueImages) {
-  //   refs.loadMoreBtn.style.display = 'none';
-  //   Notify.info("We're sorry, but you've reached the end of search results.");
-  //   return;
-  // }
 }
 
 function renderImage(images) {
@@ -82,10 +82,9 @@ function clearContainer() {
   refs.galleryCard.innerHTML = '';
 }
 
-function checkSearch(search) {
-  if (search === 0) {
-    return Notify.failure(
-      'Sorry, there are no images matching your search query. Please try again.'
-    );
+function checkOnloadMore(value) {
+  if (value <= 0) {
+    refs.loadMoreBtn.style.display = 'none';
+    Notify.info("We're sorry, but you've reached the end of search results.");
   }
 }
