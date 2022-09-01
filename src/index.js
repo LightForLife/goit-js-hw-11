@@ -88,7 +88,6 @@ async function onLoadMore() {
   const images = await imgApiServise.axiosGetImages();
   valueImages -= images.hits.length;
   const value = valueImages - images.hits.length;
-  console.log(value);
   const renderCard = createImageCard(images.hits);
 
   renderImage(renderCard);
