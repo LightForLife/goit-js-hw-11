@@ -13,16 +13,16 @@ export default function createImageCard(images) {
         </a>
         <div class="gallery-info">
           <p class="gallery-info-text">
-            <b>Likes ${image.likes}</b>
+            <b>Likes <span class = "text-info">${image.likes}</span></b>
           </p>
           <p class="gallery-info-text">
-            <b>Views ${image.views}</b>
+            <b>Views <span class = "text-info">${image.views}</span></b>
           </p>
           <p class="gallery-info-text">
-            <b>Comments ${image.comments}</b>
+            <b>Comments <span class = "text-info">${image.comments}</span></b>
           </p>
           <p class="gallery-info-text">
-            <b>Downloads ${image.downloads}</b>
+            <b>Downloads <span class = "text-info">${image.downloads}</span></b>
           </p>
         </div>
       </div>
